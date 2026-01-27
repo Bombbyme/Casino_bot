@@ -3,27 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Star Casino</title>
+    <title>Gems Mines</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #1c1c1c; color: white; padding: 20px; }
-        .btn { background: #0088cc; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 18px; cursor: pointer; }
-        .stars-icon { font-size: 50px; margin-bottom: 20px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #1a1a1a; color: white; text-align: center; margin: 0; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; max-width: 300px; margin: 20px auto; }
+        .cell { aspect-ratio: 1/1; background: #2c2c2c; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; border: 2px solid #3d3d3d; }
+        .cell.open { background: #3d3d3d; border-color: #0088cc; }
+        .btn { background: #0088cc; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 18px; width: 100%; max-width: 300px; }
+        .stats { margin-bottom: 10px; font-size: 18px; color: #aaa; }
     </style>
 </head>
 <body>
-    <div class="stars-icon">⭐️</div>
-    <h1>Star Casino</h1>
-    <p>Твой баланс: <span id="balance">103</span></p>
-    <button class="btn" onclick="sendBet()">Сделать ставку (10 ★)</button>
+    <h1>💎 GEMS MINES</h1>
+    <div class="stats">Ставка: 10 ⭐️ | Множитель: <span id="mult">1.0x</span></div>
+    <div class="grid" id="grid"></div>
+    <button class="btn" id="mainBtn" onclick="startGame()">ИГРАТЬ (10 ⭐️)</button>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.expand();
+        let isGameActive = false;
 
-        function sendBet() {
-            // Отправляем данные боту, что пользователь хочет сделать ставку
-            tg.sendData("bet_10");
+        // Создаем сетку 5х5
+        const grid = document.getElementById('grid');
+        for (let i = 0; i < 25; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.onclick = () => openCell(cell);
+            grid.appendChild(cell);
+        }
+
+        function startGame() {
+            if (!isGameActive) {
+                // Отправляем боту команду на оплату
+                tg.sendData("action_bet_10"); 
+                // Примечание: после оплаты бот должен прислать сигнал к началу
+                // Но для начала просто активируем поле локально
+                isGameActive = true;
+                document.getElementById('mainBtn').innerText = "ЗАБРАТЬ";
+            } else {
+                alert("Вы забрали выигрыш!");
+                resetGame();
+            }
+        }
+
+        function openCell(cell) {
+            if (!isGameActive || cell.classList.contains('open')) return;
+            cell.classList.add('open');
+            // Шанс 80% что гем, 20% что мина (упрощенно)
+            if (Math.random() > 0.2) {
+                cell.innerText = "💎";
+            } else {
+                cell.innerText = "💣";
+                cell.style.background = "red";
+                alert("БУМ! Вы проиграли.");
+                resetGame();
+            }
+        }
+
+        function resetGame() {
+            isGameActive = false;
+            document.getElementById('mainBtn').innerText = "ИГРАТЬ (10 ⭐️)";
+            setTimeout(() => location.reload(), 2000);
         }
     </script>
 </body>
